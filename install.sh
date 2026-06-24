@@ -41,6 +41,8 @@ if [[ "$number" == "1" ]]; then
     echo "Registering WARP client..."
     warp-cli --accept-tos registration new
     
+    echo y
+
     warp-cli mode proxy
     warp-cli connect
     
