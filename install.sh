@@ -28,13 +28,16 @@ VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2)
 if [[ "$number" == "1" ]]; then
     echo "Installing cloudflare warp..."
     
+    sudo rm -f /etc/apt/sources.list.d/cloudflare-*.list
+
     sudo apt update && sudo apt install curl gnupg lsb-release -y
     
     curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
     echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $VERSION_CODENAME main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
     
-    sudo apt update && sudo apt install cloudflare-warp -y
-    
+    sudo apt update -y
+    sudo apt install cloudflare-warp -y
+
     echo "Registering WARP client..."
     warp-cli --accept-tos registration new
     
