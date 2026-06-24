@@ -49,7 +49,8 @@ if [[ "$number" == "1" ]]; then
     sleep 3
     
     echo "Checking connection..."
-    check=curl --socks5-hostname 127.0.0.1:40000 -s https://www.cloudflare.com/cdn-cgi/trace | grep "warp=on"
+    check=$(curl --socks5-hostname 127.0.0.1:40000 -s https://www.cloudflare.com/cdn-cgi/trace | grep "warp=on" | tr -d '\r')
+
     if [[ "$check" == "warp=on" ]]; then
         echo "Success! WARP is active on 127.0.0.1:40000"
     else
