@@ -1,11 +1,15 @@
 #!/bin/bash
-os=$(lsb_release -is)
 
-if [[ "$os" == "Ubuntu" ]] || [[ $os == "Debian" ]]; then
-    true
-else
-        echo "Aborted. Script only use for Ubuntu/Debian"
+# Проверяем ОС через /etc/os-release (надежнее, чем lsb_release)
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
+        echo "Aborted. Script only for Ubuntu/Debian"
         exit 1
+    fi
+else
+    echo "Cannot determine OS. Aborted."
+    exit 1
 fi
 
 echo '================================================='
@@ -17,31 +21,52 @@ echo "[1] - Install WARP"
 echo "[2] - Delete WARP"
 echo "[3] - Exit"
 echo -n "Enter number: "
-read number
+read -r number
 
-if [[ "$number" == 1 ]]; then
-    echo "Installing cloudflare warp"
+VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2)
+
+if [[ "$number" == "1" ]]; then
+    echo "Installing cloudflare warp..."
+    
+    sudo apt update && sudo apt install curl gnupg lsb-release -y
+    
     curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
-    echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+    echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $VERSION_CODENAME main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+    
     sudo apt update && sudo apt install cloudflare-warp -y
-    warp-cli registration new
-    echo Y
+    
+    echo "Registering WARP client..."
+    warp-cli --accept-tos registration new
+    
     warp-cli mode proxy
     warp-cli connect
-    curl https://www.cloudflare.com/cdn-cgi/trace | grep warp=on
-elif [[ $number == 2 ]]; then
-    echo "Deleting cloudflare warp"
-    warp-cli disconnect
-    warp-cli delete
+    
+    sleep 3
+    
+    echo "Checking connection..."
+    if curl --socks5-hostname 127.0.0.1:4000 -s https://www.cloudflare.com/cdn-cgi/trace | grep -q "warp=on"; then
+        echo "Success! WARP is active on 127.0.0.1:4000"
+    else
+        echo "Warning: WARP installed, but proxy check failed."
+    fi
+
+elif [[ "$number" == "2" ]]; then
+    echo "Deleting cloudflare warp..."
+    warp-cli disconnect 2>/dev/null
+    warp-cli delete 2>/dev/null
     sudo apt remove --purge cloudflare-warp -y
     sudo apt autoremove -y
     rm -rf ~/.cloudflare
+    rm -f /etc/apt/sources.list.d/cloudflare-client.list
+    
     sudo systemctl restart systemd-resolved
-    sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-elif [[ $number == 3 ]]; then
+    
+    echo "WARP successfully removed."
+
+elif [[ "$number" == "3" ]]; then
     echo "Goodbye!"
-    exit 1
+    exit 0
 else
-    echo "Aborted."
+    echo "Aborted. Invalid option."
     exit 1
 fi
