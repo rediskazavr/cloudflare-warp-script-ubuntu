@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Проверяем ОС через /etc/os-release (надежнее, чем lsb_release)
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
