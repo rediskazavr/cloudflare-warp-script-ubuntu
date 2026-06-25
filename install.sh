@@ -1,14 +1,14 @@
 #!/bin/bash
 
 if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
-        echo "Aborted. Script only for Ubuntu/Debian"
-        exit 1
-    fi
+	. /etc/os-release
+	if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
+		echo "Aborted. Script only for Ubuntu/Debian"
+		exit 1
+	fi
 else
-    echo "Cannot determine OS. Aborted."
-    exit 1
+	echo "Cannot determine OS. Aborted."
+	exit 1
 fi
 
 echo '================================================='
@@ -25,56 +25,56 @@ read -r number
 VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2)
 
 if [[ "$number" == "1" ]]; then
-    echo "Installing cloudflare warp..."
-    
-    sudo rm -f /etc/apt/sources.list.d/cloudflare-*.list
+	echo "Installing cloudflare warp..."
 
-    sudo apt update && sudo apt install curl gnupg lsb-release -y
-    
-    curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
-    echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $VERSION_CODENAME main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
-    
-    sudo apt update -y
-    sudo apt install cloudflare-warp -y
+	sudo rm -f /etc/apt/sources.list.d/cloudflare-*.list
 
-    echo "Registering WARP client..."
-    warp-cli registration new
-    
-    echo y
+	sudo apt update && sudo apt install curl gnupg lsb-release -y
 
-    warp-cli mode proxy
-    warp-cli connect
-    
-    sleep 3
-    
-    echo "Checking connection..."
+	curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+	echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $VERSION_CODENAME main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
 
-    curl --socks5-hostname 127.0.0.1:40000 -s https://www.cloudflare.com/cdn-cgi/trace | grep "warp=on" | while read -r check; do
+	sudo apt update -y
+	sudo apt install cloudflare-warp -y
 
-    if [[ "$check" == "warp=on" ]]; then
-        echo "Success! WARP is active on 127.0.0.1:40000"
-    else
-        echo "Warning: WARP installed, but proxy check failed."
-    fi
-done
+	echo "Registering WARP client..."
+	warp-cli registration new
+
+	echo y
+
+	warp-cli mode proxy
+	warp-cli connect
+
+	sleep 3
+
+	echo "Checking connection..."
+
+	curl --socks5-hostname 127.0.0.1:40000 -s https://www.cloudflare.com/cdn-cgi/trace | grep "warp=on" | while read -r check; do
+
+		if [[ "$check" == "warp=on" ]]; then
+			echo "Success! WARP is active on 127.0.0.1:40000"
+		else
+			echo "Warning: WARP installed, but proxy check failed."
+		fi
+	done
 
 elif [[ "$number" == "2" ]]; then
-    echo "Deleting cloudflare warp..."
-    warp-cli disconnect 2>/dev/null
-    warp-cli delete 2>/dev/null
-    sudo apt remove --purge cloudflare-warp -y
-    sudo apt autoremove -y
-    rm -rf ~/.cloudflare
-    rm -f /etc/apt/sources.list.d/cloudflare-client.list
-    
-    sudo systemctl restart systemd-resolved
-    
-    echo "WARP successfully removed."
+	echo "Deleting cloudflare warp..."
+	warp-cli disconnect 2>/dev/null
+	warp-cli delete 2>/dev/null
+	sudo apt remove --purge cloudflare-warp -y
+	sudo apt autoremove -y
+	rm -rf ~/.cloudflare
+	rm -f /etc/apt/sources.list.d/cloudflare-client.list
+
+	sudo systemctl restart systemd-resolved
+
+	echo "WARP successfully removed."
 
 elif [[ "$number" == "3" ]]; then
-    echo "Goodbye!"
-    exit 0
+	echo "Goodbye!"
+	exit 0
 else
-    echo "Aborted. Invalid option."
-    exit 1
+	echo "Aborted. Invalid option."
+	exit 1
 fi
