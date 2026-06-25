@@ -1,7 +1,7 @@
 ![](https://images.seeklogo.com/logo-png/29/2/cloudflare-logo-png_seeklogo-294312.png)
 # Quick start
 ```bash
-    bash <(wget -qO- https://raw.githubusercontent.com/rediskazavr/cloudflare-warp-script-ubuntu/refs/heads/main/install.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/rediskazavr/cloudflare-warp-script-ubuntu/refs/heads/main/install.sh)
 ```
 
 # You can support me by a crypto <img src="https://em-content.zobj.net/source/apple/453/smiling-face-with-hearts_1f970.png" width="32" height="32">
