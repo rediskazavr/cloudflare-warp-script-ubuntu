@@ -38,7 +38,7 @@ if [[ "$number" == "1" ]]; then
     sudo apt install cloudflare-warp -y
 
     echo "Registering WARP client..."
-    warp-cli --accept-tos registration new
+    warp-cli registration new
     
     echo y
 
